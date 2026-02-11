@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 
+const API_BASE = "https://hrms-lite-backend-waw4.onrender.com";
+
 function App() {
-  // -----------------------------
+  // ===============================
   // Employee State
-  // -----------------------------
+  // ===============================
   const [employees, setEmployees] = useState([]);
   const [formData, setFormData] = useState({
     employee_id: "",
@@ -12,9 +14,9 @@ function App() {
     department: "",
   });
 
-  // -----------------------------
+  // ===============================
   // Attendance State
-  // -----------------------------
+  // ===============================
   const [attendanceData, setAttendanceData] = useState({
     employee_id: "",
     date: "",
@@ -23,81 +25,71 @@ function App() {
 
   const [attendanceList, setAttendanceList] = useState([]);
 
-  // -----------------------------
+  // ===============================
   // Fetch Employees
-  // -----------------------------
-  const fetchEmployees = () => {
-  fetch("https://hrms-lite-backend-waw4.onrender.com/employees")
-    .then((res) => {
-      if (!res.ok) {
-        throw new Error("Failed to fetch employees");
-      }
-      return res.json();
-    })
-    .then((data) => {
-      if (Array.isArray(data)) {
-        setEmployees(data);
-      } else {
-        setEmployees([]);
-      }
-    })
-    .catch((err) => {
+  // ===============================
+  const fetchEmployees = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/employees`);
+      if (!res.ok) throw new Error("Failed to fetch employees");
+      const data = await res.json();
+      setEmployees(Array.isArray(data) ? data : []);
+    } catch (err) {
       console.error(err);
-      setEmployees([]); // Prevent crash
-    });
-};
+      setEmployees([]);
+    }
+  };
 
   useEffect(() => {
     fetchEmployees();
   }, []);
 
-  // -----------------------------
+  // ===============================
   // Employee Handlers
-  // -----------------------------
+  // ===============================
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    fetch("https://hrms-lite-backend-waw4.onrender.com", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(formData),
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Error adding employee");
-        return res.json();
-      })
-      .then(() => {
-        setFormData({
-          employee_id: "",
-          full_name: "",
-          email: "",
-          department: "",
-        });
-        fetchEmployees();
-      })
-      .catch((err) => alert(err.message));
+    try {
+      const res = await fetch(`${API_BASE}/employees`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (!res.ok) throw new Error("Error adding employee");
+
+      setFormData({
+        employee_id: "",
+        full_name: "",
+        email: "",
+        department: "",
+      });
+
+      fetchEmployees();
+    } catch (err) {
+      alert(err.message);
+    }
   };
 
-  const handleDelete = (id) => {
-    fetch(`https://hrms-lite-backend-waw4.onrender.com`, {
-      method: "DELETE",
-    })
-      .then(() => fetchEmployees())
-      .catch((err) => console.error(err));
+  const handleDelete = async (id) => {
+    try {
+      await fetch(`${API_BASE}/employees/${id}`, {
+        method: "DELETE",
+      });
+      fetchEmployees();
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  // -----------------------------
+  // ===============================
   // Attendance Handlers
-  // -----------------------------
+  // ===============================
   const handleAttendanceChange = (e) => {
     setAttendanceData({
       ...attendanceData,
@@ -105,49 +97,49 @@ function App() {
     });
   };
 
-  const submitAttendance = (e) => {
+  const submitAttendance = async (e) => {
     e.preventDefault();
 
-    fetch("https://hrms-lite-backend-waw4.onrender.com", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        ...attendanceData,
-        employee_id: Number(attendanceData.employee_id),
-      }),
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Error marking attendance");
-        return res.json();
-      })
-      .then(() => {
-        alert("Attendance marked");
-      })
-      .catch((err) => alert(err.message));
+    try {
+      const res = await fetch(`${API_BASE}/attendance`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...attendanceData,
+          employee_id: Number(attendanceData.employee_id),
+        }),
+      });
+
+      if (!res.ok) throw new Error("Error marking attendance");
+
+      alert("Attendance marked successfully");
+    } catch (err) {
+      alert(err.message);
+    }
   };
 
-  const fetchAttendance = (employeeId) => {
+  const fetchAttendance = async (employeeId) => {
     if (!employeeId) return;
 
-    fetch(`http://127.0.0.1:8000/attendance/${employeeId}`)
-      .then((res) => res.json())
-      .then((data) => setAttendanceList(data))
-      .catch((err) => console.error(err));
+    try {
+      const res = await fetch(`${API_BASE}/attendance/${employeeId}`);
+      const data = await res.json();
+      setAttendanceList(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  // -----------------------------
+  // ===============================
   // UI
-  // -----------------------------
+  // ===============================
   return (
     <div className="container">
       <h1>HRMS Lite</h1>
 
-      {/* ---------------- Employee Section ---------------- */}
+      {/* Employee Section */}
       <h2>Add Employee</h2>
-
-      <form onSubmit={handleSubmit} style={{ marginBottom: "20px" }}>
+      <form onSubmit={handleSubmit}>
         <input
           name="employee_id"
           placeholder="Employee ID"
@@ -180,13 +172,11 @@ function App() {
       </form>
 
       <h2>Employee List</h2>
-
-      {Array.isArray(employees) && employees.length === 0 ? (
+      {employees.length === 0 ? (
         <p>No employees found.</p>
       ) : (
         <ul>
-          {Array.isArray(employees) &&
-             employees.map((emp) => (
+          {employees.map((emp) => (
             <li key={emp.id}>
               {emp.full_name} - {emp.department}{" "}
               <button onClick={() => handleDelete(emp.id)}>Delete</button>
@@ -195,12 +185,11 @@ function App() {
         </ul>
       )}
 
-      {/* ---------------- Attendance Section ---------------- */}
       <hr style={{ margin: "40px 0" }} />
 
+      {/* Attendance Section */}
       <h2>Mark Attendance</h2>
-
-      <form onSubmit={submitAttendance} style={{ marginBottom: "20px" }}>
+      <form onSubmit={submitAttendance}>
         <select
           name="employee_id"
           value={attendanceData.employee_id}
@@ -236,7 +225,6 @@ function App() {
       </form>
 
       <h3>View Attendance</h3>
-
       <select onChange={(e) => fetchAttendance(e.target.value)}>
         <option value="">Select Employee</option>
         {employees.map((emp) => (
