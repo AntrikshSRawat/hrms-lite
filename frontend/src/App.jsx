@@ -27,11 +27,25 @@ function App() {
   // Fetch Employees
   // -----------------------------
   const fetchEmployees = () => {
-    fetch("https://hrms-lite-backend-waw4.onrender.com")
-      .then((res) => res.json())
-      .then((data) => setEmployees(data))
-      .catch((err) => console.error(err));
-  };
+  fetch("https://hrms-lite-backend-waw4.onrender.com/employees")
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error("Failed to fetch employees");
+      }
+      return res.json();
+    })
+    .then((data) => {
+      if (Array.isArray(data)) {
+        setEmployees(data);
+      } else {
+        setEmployees([]);
+      }
+    })
+    .catch((err) => {
+      console.error(err);
+      setEmployees([]); // Prevent crash
+    });
+};
 
   useEffect(() => {
     fetchEmployees();
@@ -167,11 +181,12 @@ function App() {
 
       <h2>Employee List</h2>
 
-      {employees.length === 0 ? (
+      {Array.isArray(employees) && employees.length === 0 ? (
         <p>No employees found.</p>
       ) : (
         <ul>
-          {employees.map((emp) => (
+          {Array.isArray(employees) &&
+             employees.map((emp) => (
             <li key={emp.id}>
               {emp.full_name} - {emp.department}{" "}
               <button onClick={() => handleDelete(emp.id)}>Delete</button>
