@@ -27,7 +27,7 @@ function App() {
   // Fetch Employees
   // -----------------------------
   const fetchEmployees = () => {
-    fetch("http://127.0.0.1:8000/employees")
+    fetch("https://hrms-lite-backend-waw4.onrender.com")
       .then((res) => res.json())
       .then((data) => setEmployees(data))
       .catch((err) => console.error(err));
@@ -50,7 +50,7 @@ function App() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    fetch("http://127.0.0.1:8000/employees", {
+    fetch("https://hrms-lite-backend-waw4.onrender.com", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -74,7 +74,7 @@ function App() {
   };
 
   const handleDelete = (id) => {
-    fetch(`http://127.0.0.1:8000/employees/${id}`, {
+    fetch(`https://hrms-lite-backend-waw4.onrender.com`, {
       method: "DELETE",
     })
       .then(() => fetchEmployees())
@@ -94,7 +94,7 @@ function App() {
   const submitAttendance = (e) => {
     e.preventDefault();
 
-    fetch("http://127.0.0.1:8000/attendance", {
+    fetch("https://hrms-lite-backend-waw4.onrender.com", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
